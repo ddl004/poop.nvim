@@ -54,7 +54,7 @@ vim.on_key(
 | `eject_delay`  | Delay in seconds between each frame.                                   | 0.002   |
 
 
-You can set it these in your `init.lua` as follows:
+You can set these in your `init.lua` as follows:
 ```lua
 vim.g.eject_emoji = '💩'
 ```
