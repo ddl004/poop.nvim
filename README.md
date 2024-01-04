@@ -19,36 +19,27 @@ and call `:PlugInstall` followed by `:UpdateRemotePlugins`.
 
 ### Optional - Tested on Neovim >= v0.10
 
+TODO: Add random logic here, specify up to two emojis
+
 In your `init.lua` file, add the following to periodically eject when in insert mode:
 ```lua
-vim.on_key(function(key)
-    if vim.api.nvim_get_mode().mode ~= 'i' then return end
-    vim.schedule_wrap(function()
-        vim.cmd.Eject("use_period")
-    end)() 
-end, nil)
 ```
 
 If you are using `init.vim` instead:
 ```vim
-lua << EOF
-vim.on_key(function(key)
-    if vim.api.nvim_get_mode().mode ~= 'i' then return end
-    vim.schedule_wrap(function()
-        vim.cmd.Eject("use_period")
-    end)() 
-end, nil)
 EOF
 ```
 
 ## Configuration
 ### Options
-| Option         | Description                                                                                  | Default |
-|----------------|----------------------------------------------------------------------------------------------|---------|
-| `eject_emoji`  | The emoji that is ejected.                                                                   | 💩      |
-| `eject_speed`  | Increase/decrease to change the speed of the projectile being ejected.                       | 100     |
-| `eject_angle`  | Angle at which the projectile is ejected.                                                    | 20      |
-| `eject_period` | Increase to lower the frequency of ejection, or lower to increase the frequency of ejection. | 10      |
+| Option         | Description                                                            | Default |
+|----------------|------------------------------------------------------------------------|---------|
+| `eject_emoji`  | The default emoji that is ejected.                                     | 💩      |
+| `eject_speed`  | Increase/decrease to change the speed of the projectile being ejected. | 100     |
+| `eject_angle`  | Angle at which the projectile is ejected.                              | 20      |
+| `eject_frames` | Number of frames in the animation.                                     | 120     |
+| `eject_delay`  | Delay in seconds between each frame.                                   | 0.002   |
+
 
 You can set it these in your `init.lua` as follows:
 ```lua
