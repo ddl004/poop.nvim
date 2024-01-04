@@ -5,7 +5,6 @@ A neovim plugin to help embrace the code smell.
 
 ## Features
 - Call `:Eject` to eject from the current cursor position!
-- By adding the `on_key` call in your config file, the poop will be ejected randomly on every key press in insert mode, with frequency inversely proportional to the value of `eject_period`.
 - Option for customizing the projectile ejected.
 
 ## Installation
@@ -19,38 +18,43 @@ and call `:PlugInstall` followed by `:UpdateRemotePlugins`.
 
 ### Optional - Tested on Neovim >= v0.10
 
-In your `init.lua` file, add the following to periodically eject when in insert mode:
+In your `init.lua` file, add the following to periodically eject when in insert mode. This also gives you the option to eject different types of emojis.
 ```lua
-vim.on_key(function(key)
-    if vim.api.nvim_get_mode().mode ~= 'i' then return end
-    vim.schedule_wrap(function()
-        vim.cmd.Eject("use_period")
-    end)() 
-end, nil)
-```
+local emojis = {'💩', '💀', '👻'}
+local period = 10
+vim.on_key(
+    function(key)
+        if vim.api.nvim_get_mode().mode ~= "i" then
+            return
+        end
+        vim.schedule_wrap(
+            function()
+                local left = emojis[math.random(1, #emojis)]
+                local right = emojis[math.random(1, #emojis)]
+                local should_eject = math.random(1, period) == 1
 
-If you are using `init.vim` instead:
-```vim
-lua << EOF
-vim.on_key(function(key)
-    if vim.api.nvim_get_mode().mode ~= 'i' then return end
-    vim.schedule_wrap(function()
-        vim.cmd.Eject("use_period")
-    end)() 
-end, nil)
-EOF
+                if should_eject then
+                    vim.cmd.Eject(left, right)
+                end
+            end
+        )()
+    end,
+    nil
+)
 ```
 
 ## Configuration
 ### Options
-| Option         | Description                                                                                  | Default |
-|----------------|----------------------------------------------------------------------------------------------|---------|
-| `eject_emoji`  | The emoji that is ejected.                                                                   | 💩      |
-| `eject_speed`  | Increase/decrease to change the speed of the projectile being ejected.                       | 100     |
-| `eject_angle`  | Angle at which the projectile is ejected.                                                    | 20      |
-| `eject_period` | Increase to lower the frequency of ejection, or lower to increase the frequency of ejection. | 10      |
+| Option         | Description                                                            | Default |
+|----------------|------------------------------------------------------------------------|---------|
+| `eject_emoji`  | The default emoji that is ejected.                                     | 💩      |
+| `eject_speed`  | Increase/decrease to change the speed of the projectile being ejected. | 100     |
+| `eject_angle`  | Angle at which the projectile is ejected.                              | 20      |
+| `eject_frames` | Number of frames in the animation.                                     | 120     |
+| `eject_delay`  | Delay in seconds between each frame.                                   | 0.002   |
 
-You can set it these in your `init.lua` as follows:
+
+You can set these in your `init.lua` as follows:
 ```lua
 vim.g.eject_emoji = '💩'
 ```

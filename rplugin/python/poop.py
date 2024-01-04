@@ -1,6 +1,5 @@
 import asyncio
 import math
-from random import randint
 
 import pynvim
 
@@ -19,25 +18,27 @@ class Plugin:
             "style": "minimal",
         }
         self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-        self.settings = None
+        self.settings = {}
 
     def _update_settings_from_options(self):
         self.settings = {
-            "speed": 100,
+            "speed": 100.0,
             "angle": 20.0,
-            "period": 10,
+            "frames": 120,
+            "delay": 0.002,
             "emoji": "💩",
         }
         for config_option in self.settings:
             if self.nvim.vars.get(f"{self._prefix}{config_option}"):
-                if config_option == "emoji":
-                    self.settings[config_option] = self.nvim.vars[
-                        f"{self._prefix}{config_option}"
-                    ]
-                else:
-                    self.settings[config_option] = float(
-                        self.nvim.vars[f"{self._prefix}{config_option}"]
-                    )
+                current = self.settings[config_option]
+                self.settings[config_option] = type(current)(
+                    self.nvim.vars[f"{self._prefix}{config_option}"]
+                )
+
+        speed = self.settings["speed"]
+        angle = self.settings["angle"]
+        self.settings["x_velocity"] = speed * math.cos(math.radians(angle))
+        self.settings["y_velocity"] = speed * math.sin(math.radians(angle))
 
     async def animate(self, window: pynvim.api.window.Window, direction: int):
         """
@@ -53,22 +54,11 @@ class Plugin:
         Note:
         - The animation uses settings from self.settings, including speed, and angle.
         """
-        speed, angle = (
-            self.settings["speed"],
-            self.settings["angle"],
-        )
-        time_step = 0.1
-        horizontal_velocity = speed * math.cos(math.radians(angle))
-        vertical_velocity = speed * math.sin(math.radians(angle))
-
-        for time_elapsed in range(120):
-            await asyncio.sleep(0.002)
-            current_x = direction * (horizontal_velocity * (time_elapsed * time_step))
-            current_y = (
-                0
-                - vertical_velocity * (time_elapsed * time_step)
-                + (0.5 * (9.8) * (time_elapsed * time_step) ** 2)
-            )
+        for time_elapsed in range(self.settings["frames"]):
+            await asyncio.sleep(self.settings["delay"])
+            step = time_elapsed * 0.1
+            current_x = direction * (self.settings["x_velocity"] * step)
+            current_y = 0 - self.settings["y_velocity"] * step + (0.5 * 9.8 * (step**2))
 
             # Update the window position
             config = {
@@ -82,16 +72,16 @@ class Plugin:
         # Close the window when done
         self.nvim.async_call(self.nvim.api.win_close, window, True)
 
-    def eject(self):
+    def eject(self, left, right):
         """
         Creates a new buffer, sets its content, and opens a floating window
         displaying the buffer. An async task is added for right and left
         objects.
         """
-        for direction in (-1, 1):
+        for direction, emoji in ((-1, left), (1, right)):
             # Create a new buffer
             buffer = self.nvim.api.create_buf(False, True)
-            self.nvim.api.buf_set_lines(buffer, 0, 1, True, [self.settings["emoji"]])
+            self.nvim.api.buf_set_lines(buffer, 0, 1, True, [emoji])
             # Create a floating window
             window = self.nvim.api.open_win(buffer, False, self.init_config)
             self.nvim.api.set_option_value("winhl", "Normal:Poop", {"win": window})
@@ -105,12 +95,15 @@ class Plugin:
 
         Simulate ejection by moving a 1x1 floating window.
         """
-        if self.settings is None:
+        if self.settings == {}:
             self._update_settings_from_options()
 
-        use_period = False
-        if len(args):
-            use_period = args[0] == "use_period"
-        should_eject = randint(0, self.settings["period"]) == 0
-        if not use_period or should_eject:
-            self.eject()
+        if len(args) == 1:
+            left = right = args[0]
+        elif len(args) == 2:
+            left = args[0]
+            right = args[1]
+        else:
+            left = right = self.settings["emoji"]
+
+        self.eject(left, right)
