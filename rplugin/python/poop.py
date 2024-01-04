@@ -98,10 +98,12 @@ class Plugin:
         if self.settings == {}:
             self._update_settings_from_options()
 
-        try:
+        if len(args) == 1:
+            left = right = args[0]
+        elif len(args) == 2:
             left = args[0]
             right = args[1]
-        except Exception:
+        else:
             left = right = self.settings["emoji"]
 
         self.eject(left, right)

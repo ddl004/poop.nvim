@@ -5,7 +5,6 @@ A neovim plugin to help embrace the code smell.
 
 ## Features
 - Call `:Eject` to eject from the current cursor position!
-- By adding the `on_key` call in your config file, the poop will be ejected randomly on every key press in insert mode, with frequency inversely proportional to the value of `eject_period`.
 - Option for customizing the projectile ejected.
 
 ## Installation
@@ -19,15 +18,29 @@ and call `:PlugInstall` followed by `:UpdateRemotePlugins`.
 
 ### Optional - Tested on Neovim >= v0.10
 
-TODO: Add random logic here, specify up to two emojis
-
-In your `init.lua` file, add the following to periodically eject when in insert mode:
+In your `init.lua` file, add the following to periodically eject when in insert mode. This also gives you the option to eject different types of emojis.
 ```lua
-```
+local emojis = {'💩', '💀', '👻'}
+local period = 10
+vim.on_key(
+    function(key)
+        if vim.api.nvim_get_mode().mode ~= "i" then
+            return
+        end
+        vim.schedule_wrap(
+            function()
+                local left = emojis[math.random(1, #emojis)]
+                local right = emojis[math.random(1, #emojis)]
+                local should_eject = math.random(1, period) == 1
 
-If you are using `init.vim` instead:
-```vim
-EOF
+                if should_eject then
+                    vim.cmd.Eject(left, right)
+                end
+            end
+        )()
+    end,
+    nil
+)
 ```
 
 ## Configuration
