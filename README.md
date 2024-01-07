@@ -69,7 +69,7 @@ vim.on_key(
     function(key)
         if
             vim.api.nvim_get_mode().mode ~= "i" or
-                is_fts_excluded(vim.api.nvim_buf_get_option(0, "filetype"), excluded_fts)
+                is_fts_excluded(vim.api.nvim_get_option_value("filetype", {}), excluded_fts)
          then
             return
         end
