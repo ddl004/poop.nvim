@@ -5,7 +5,9 @@ A neovim plugin to help embrace the code smell.
 
 ## Features
 - Call `:Eject` to eject from the current cursor position!
-- Option for customizing the projectile ejected.
+    - Takes two arguments, `left` and `right`. e.g. `:Eject 💩 💀`
+- Option for customizing the projectile ejected and animation properties.
+- Optional configuration provided to eject emojis randomly while in insert mode.
 
 ## Installation
 - This is a remote plugin written in Python, so you will need `pynvim` to install this plugin. See the installation instructions here: [pynvim](https://github.com/neovim/pynvim?tab=readme-ov-file#install).
@@ -18,10 +20,14 @@ and call `:PlugInstall` followed by `:UpdateRemotePlugins`.
 
 ### Optional - Tested on Neovim >= v0.10
 
-In your `init.lua` file, add the following to periodically eject when in insert mode. This also gives you the option to eject different types of emojis.
+In your `init.lua` file, add the following to periodically eject when in insert mode.
+If you are using [lazy.nvim](https://github.com/folke/lazy.nvim), you can add this to the `config()` function for this plugin. 
+
+You can edit the local variables `emojis` and `period` to modify the emojis ejected and the frequency of the ejection respectively.
 ```lua
-local emojis = {'💩', '💀', '👻'}
-local period = 10
+local emojis = {'💩', '💀', '👻'}  -- edit these to include the emojis you want ejected
+local period = 10 -- edit this to change the frequency of ejection
+
 vim.on_key(
     function(key)
         if vim.api.nvim_get_mode().mode ~= "i" then
@@ -43,7 +49,49 @@ vim.on_key(
 )
 ```
 
+On previous versions of Neovim, you may run into issues with telescope or other plugins that also include floating windows.
+You can use this modified configuration to exclude certain filetypes (e.g. `TelescopePrompt`).
+```lua
+local emojis = {'💩', '💀', '👻'}  -- edit these to include the emojis you want ejected
+local period = 10 -- edit this to change the frequency of ejection
+local excluded_fts = {"TelescopePrompt"}
+
+local function is_fts_excluded(buf_ft, excluded_fts)
+    for _, ft in ipairs(excluded_fts) do
+        if buf_ft == ft then
+            return true
+        end
+    end
+    return false
+end
+
+vim.on_key(
+    function(key)
+        if
+            vim.api.nvim_get_mode().mode ~= "i" or
+                is_fts_excluded(vim.api.nvim_buf_get_option(0, "filetype"), excluded_fts)
+         then
+            return
+        end
+        vim.schedule_wrap(
+            function()
+                local left = emojis[math.random(1, #emojis)]
+                local right = emojis[math.random(1, #emojis)]
+                local should_eject = math.random(1, period) == 1
+
+                if should_eject then
+                    vim.cmd.Eject(left, right)
+                end
+            end
+        )()
+    end,
+    nil
+)
+```
+
 ## Configuration
+These options are used by the `:Eject` command.
+
 ### Options
 | Option         | Description                                                            | Default |
 |----------------|------------------------------------------------------------------------|---------|
